@@ -75,7 +75,7 @@ public class HandshakeDataImpl implements HandshakeData {
             }
 
             //javaUniqueId = Utils.getJavaUuid(bedrockData.getXuid());
-			javaUniqueId = UUID.nameUUIDFromBytes(("OfflinePlayer:" + javaUsername).getBytes(StandardCharsets.UTF_8));
+            javaUniqueId = UUID.nameUUIDFromBytes(("OfflinePlayer:" + javaUsername).getBytes(StandardCharsets.UTF_8));
             this.ip = bedrockData.getIp();
         }
 
