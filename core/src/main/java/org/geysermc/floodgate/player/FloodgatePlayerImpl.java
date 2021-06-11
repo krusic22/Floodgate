@@ -27,6 +27,7 @@ package org.geysermc.floodgate.player;
 
 import java.util.Map;
 import java.util.UUID;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 import lombok.AccessLevel;
@@ -43,7 +44,7 @@ import org.geysermc.floodgate.util.DeviceOs;
 import org.geysermc.floodgate.util.InputMode;
 import org.geysermc.floodgate.util.LinkedPlayer;
 import org.geysermc.floodgate.util.UiProfile;
-import org.geysermc.floodgate.util.Utils;
+//import org.geysermc.floodgate.util.Utils;
 
 @Getter
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
@@ -74,7 +75,8 @@ public final class FloodgatePlayerImpl implements FloodgatePlayer {
     static FloodgatePlayerImpl from(BedrockData data, HandshakeData handshakeData) {
         FloodgateApi api = FloodgateApi.getInstance();
 
-        UUID javaUniqueId = Utils.getJavaUuid(data.getXuid());
+        //UUID javaUniqueId = Utils.getJavaUuid(data.getXuid());
+        UUID javaUniqueId = UUID.nameUUIDFromBytes(("OfflinePlayer:" + handshakeData.getJavaUsername()).getBytes(StandardCharsets.UTF_8));
 
         DeviceOs deviceOs = DeviceOs.fromId(data.getDeviceOs());
         UiProfile uiProfile = UiProfile.fromId(data.getUiProfile());
@@ -91,7 +93,8 @@ public final class FloodgatePlayerImpl implements FloodgatePlayer {
 
     @Override
     public UUID getCorrectUniqueId() {
-        return linkedPlayer != null ? linkedPlayer.getJavaUniqueId() : javaUniqueId;
+        //return linkedPlayer != null ? linkedPlayer.getJavaUniqueId() : javaUniqueId;
+        return UUID.nameUUIDFromBytes(("OfflinePlayer:" + this.getCorrectUsername()).getBytes(StandardCharsets.UTF_8));
     }
 
     @Override
