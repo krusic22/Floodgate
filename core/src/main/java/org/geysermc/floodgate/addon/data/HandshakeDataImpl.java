@@ -27,13 +27,14 @@ package org.geysermc.floodgate.addon.data;
 
 import io.netty.channel.Channel;
 import java.util.UUID;
+import java.nio.charset.StandardCharsets;
 import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.floodgate.api.handshake.HandshakeData;
 import org.geysermc.floodgate.config.FloodgateConfig;
 import org.geysermc.floodgate.util.BedrockData;
 import org.geysermc.floodgate.util.LinkedPlayer;
-import org.geysermc.floodgate.util.Utils;
+//import org.geysermc.floodgate.util.Utils;
 
 @Getter
 public class HandshakeDataImpl implements HandshakeData {
@@ -73,7 +74,8 @@ public class HandshakeDataImpl implements HandshakeData {
                 javaUsername = javaUsername.replace(" ", "_");
             }
 
-            javaUniqueId = Utils.getJavaUuid(bedrockData.getXuid());
+            //javaUniqueId = Utils.getJavaUuid(bedrockData.getXuid());
+            javaUniqueId = UUID.nameUUIDFromBytes(("OfflinePlayer:" + javaUsername).getBytes(StandardCharsets.UTF_8));
             this.ip = bedrockData.getIp();
         }
 
