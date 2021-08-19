@@ -37,25 +37,27 @@ import java.util.concurrent.Executors;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
-@SuppressWarnings("all")
+// resources are properly closed and ignoring the original stack trace is intended
+@SuppressWarnings({"PMD.CloseResource", "PMD.PreserveStackTrace"})
 public class HttpUtils {
     private static final ExecutorService EXECUTOR_SERVICE = Executors.newSingleThreadExecutor();
 
     private static final Gson GSON = new Gson();
     private static final String USER_AGENT = "GeyserMC/Floodgate";
-    private static final String CONNECTION_STRING = "--";
-    private static final String BOUNDARY = "******";
-    private static final String END = "\r\n";
 
     public static CompletableFuture<DefaultHttpResponse> asyncGet(String urlString) {
-        return CompletableFuture.supplyAsync(() -> {
-            return get(urlString);
-        }, EXECUTOR_SERVICE);
+        return CompletableFuture.supplyAsync(() -> get(urlString), EXECUTOR_SERVICE);
     }
 
     public static DefaultHttpResponse get(String urlString) {
         return readDefaultResponse(request(urlString));
+    }
+
+    public static <T> HttpResponse<T> get(String urlString, Class<T> clazz) {
+        return readResponse(request(urlString), clazz);
     }
 
     public static <T> HttpResponse<T> getSilent(String urlString, Class<T> clazz) {
@@ -83,8 +85,12 @@ public class HttpUtils {
         return connection;
     }
 
-    private static <T> HttpResponse<T> readResponseSilent(HttpURLConnection connection, Class<T> clazz) {
+    @NonNull
+    private static <T> HttpResponse<T> readResponse(HttpURLConnection connection, Class<T> clazz) {
         InputStreamReader streamReader = createReader(connection);
+        if (streamReader == null) {
+            return new HttpResponse<>(-1, null);
+        }
 
         try {
             int responseCode = connection.getResponseCode();
@@ -100,8 +106,23 @@ public class HttpUtils {
         }
     }
 
+    @NonNull
+    private static <T> HttpResponse<T> readResponseSilent(
+            HttpURLConnection connection,
+            Class<T> clazz) {
+        try {
+            return readResponse(connection, clazz);
+        } catch (Exception ignored) {
+            return new HttpResponse<>(-1, null);
+        }
+    }
+
+    @NonNull
     private static DefaultHttpResponse readDefaultResponse(HttpURLConnection connection) {
         InputStreamReader streamReader = createReader(connection);
+        if (streamReader == null) {
+            return new DefaultHttpResponse(-1, null);
+        }
 
         try {
             int responseCode = connection.getResponseCode();
@@ -117,8 +138,9 @@ public class HttpUtils {
         }
     }
 
+    @Nullable
     private static InputStreamReader createReader(HttpURLConnection connection) {
-        InputStream stream = null;
+        InputStream stream;
         try {
             stream = connection.getInputStream();
         } catch (Exception exception) {
@@ -128,7 +150,12 @@ public class HttpUtils {
                 throw new RuntimeException("Both the input and the error stream failed?!");
             }
         }
-        return new InputStreamReader(stream);
+
+        // it's null for example when it couldn't connect to the server
+        if (stream != null) {
+            return new InputStreamReader(stream);
+        }
+        return null;
     }
 
     @Getter
@@ -136,10 +163,14 @@ public class HttpUtils {
     public static class HttpResponse<T> {
         private final int httpCode;
         private final T response;
+
+        public boolean isCodeOk() {
+            return httpCode >= 200 && httpCode < 300;
+        }
     }
 
     public static final class DefaultHttpResponse extends HttpResponse<JsonObject> {
-        private DefaultHttpResponse(int httpCode, JsonObject response) {
+        DefaultHttpResponse(int httpCode, JsonObject response) {
             super(httpCode, response);
         }
     }
