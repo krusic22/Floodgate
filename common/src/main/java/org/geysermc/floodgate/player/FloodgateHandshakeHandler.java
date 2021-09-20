@@ -39,6 +39,7 @@ import it.unimi.dsi.fastutil.objects.ObjectObjectImmutablePair;
 import java.net.InetSocketAddress;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeUnit;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -180,10 +181,13 @@ public final class FloodgateHandshakeHandler {
                 formatException.printStackTrace();
 
                 throw callHandlerAndReturnResult(
-                        ResultType.EXCEPTION,
+                        ResultType.DECRYPT_ERROR,
                         channel, null, hostname
                 );
             } catch (Exception exception) {
+                if (exception instanceof HandshakeResult) {
+                    throw (HandshakeResult) exception;
+                }
                 exception.printStackTrace();
 
                 throw callHandlerAndReturnResult(
@@ -196,9 +200,18 @@ public final class FloodgateHandshakeHandler {
                 return handlePart2(channel, hostname, result.left(), result.right());
             }
 
+            if (error instanceof CompletionException) {
+                if (error.getCause() == null) {
+                    error.printStackTrace();
+                }
+                error = error.getCause();
+            }
+
             if (error instanceof HandshakeResult) {
                 return (HandshakeResult) error;
             }
+
+            error.printStackTrace();
 
             return callHandlerAndReturnResult(
                     ResultType.EXCEPTION,
@@ -282,12 +295,20 @@ public final class FloodgateHandshakeHandler {
             return CompletableFuture.completedFuture(new ObjectObjectImmutablePair<>(data, null));
         }
         return api.getPlayerLink().getLinkedPlayer(Utils.getJavaUuid(data.getXuid()))
-                .thenApply(link -> new ObjectObjectImmutablePair<>(data, link));
+                .thenApply(link -> new ObjectObjectImmutablePair<>(data, link))
+                .handle((result, error) -> {
+                    if (error != null) {
+                        logger.error("The player linking implementation returned an error", error.getCause());
+                        return new ObjectObjectImmutablePair<>(data, null);
+                    }
+                    return result;
+                });
     }
 
     public enum ResultType {
         EXCEPTION,
         NOT_FLOODGATE_DATA,
+        DECRYPT_ERROR,
         INVALID_DATA_LENGTH,
         TIMESTAMP_DENIED,
         SUCCESS
