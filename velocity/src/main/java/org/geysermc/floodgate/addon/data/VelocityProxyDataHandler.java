@@ -119,6 +119,8 @@ public final class VelocityProxyDataHandler extends ChannelInboundHandlerAdapter
                 setValue(connection, REMOTE_ADDRESS, newIp);
             }
 
+            setValue(packet, HANDSHAKE_SERVER_ADDRESS, handshakeData.getHostname());
+
             if (handshakeData.getDisconnectReason() != null) {
                 ctx.channel().attr(kickMessageAttribute).set(handshakeData.getDisconnectReason());
                 return;
@@ -139,17 +141,11 @@ public final class VelocityProxyDataHandler extends ChannelInboundHandlerAdapter
                     ctx.channel().attr(kickMessageAttribute)
                             .set(config.getDisconnect().getInvalidArgumentsLength());
                     return;
-                case TIMESTAMP_DENIED:
-                    ctx.channel().attr(kickMessageAttribute)
-                            .set(Constants.TIMESTAMP_DENIED_MESSAGE);
-                    return;
                 default: // only continue when SUCCESS
                     return;
             }
 
             FloodgatePlayer player = result.getFloodgatePlayer();
-
-            setValue(packet, HANDSHAKE_SERVER_ADDRESS, handshakeData.getHostname());
 
             logger.info("Floodgate player who is logged in as {} {} joined",
                     player.getCorrectUsername(), player.getCorrectUniqueId());

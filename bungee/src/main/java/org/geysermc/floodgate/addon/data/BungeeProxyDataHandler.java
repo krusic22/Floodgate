@@ -121,6 +121,8 @@ public class BungeeProxyDataHandler extends ChannelInboundHandlerAdapter {
                 channelWrapper.setRemoteAddress(newIp);
             }
 
+            packet.setHost(handshakeData.getHostname());
+
             if (handshakeData.getDisconnectReason() != null) {
                 ctx.channel().attr(kickMessageAttribute).set(handshakeData.getDisconnectReason());
                 return;
@@ -138,10 +140,6 @@ public class BungeeProxyDataHandler extends ChannelInboundHandlerAdapter {
                 case INVALID_DATA_LENGTH:
                     ctx.channel().attr(kickMessageAttribute)
                             .set(config.getDisconnect().getInvalidArgumentsLength());
-                    break;
-                case TIMESTAMP_DENIED:
-                    ctx.channel().attr(kickMessageAttribute)
-                            .set(Constants.TIMESTAMP_DENIED_MESSAGE);
                     break;
                 default:
                     break;
