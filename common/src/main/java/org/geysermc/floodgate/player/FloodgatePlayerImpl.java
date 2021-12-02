@@ -40,12 +40,10 @@ import org.geysermc.floodgate.api.handshake.HandshakeData;
 import org.geysermc.floodgate.api.player.FloodgatePlayer;
 import org.geysermc.floodgate.api.player.PropertyKey;
 import org.geysermc.floodgate.api.player.PropertyKey.Result;
-import org.geysermc.floodgate.time.TimeSyncer;
 import org.geysermc.floodgate.util.BedrockData;
 import org.geysermc.floodgate.util.DeviceOs;
 import org.geysermc.floodgate.util.InputMode;
 import org.geysermc.floodgate.util.LinkedPlayer;
-import org.geysermc.floodgate.util.TimeSyncerHolder;
 import org.geysermc.floodgate.util.UiProfile;
 //import org.geysermc.floodgate.util.Utils;
 
@@ -86,9 +84,9 @@ public final class FloodgatePlayerImpl implements FloodgatePlayer {
         //UUID javaUniqueId = Utils.getJavaUuid(data.getXuid());
         UUID javaUniqueId = UUID.nameUUIDFromBytes(("OfflinePlayer:" + handshakeData.getJavaUsername()).getBytes(StandardCharsets.UTF_8));
 
-        DeviceOs deviceOs = DeviceOs.getById(data.getDeviceOs());
-        UiProfile uiProfile = UiProfile.getById(data.getUiProfile());
-        InputMode inputMode = InputMode.getById(data.getInputMode());
+        DeviceOs deviceOs = DeviceOs.fromId(data.getDeviceOs());
+        UiProfile uiProfile = UiProfile.fromId(data.getUiProfile());
+        InputMode inputMode = InputMode.fromId(data.getInputMode());
 
         LinkedPlayer linkedPlayer = handshakeData.getLinkedPlayer();
 
@@ -116,11 +114,9 @@ public final class FloodgatePlayerImpl implements FloodgatePlayer {
     }
 
     public BedrockData toBedrockData() {
-        TimeSyncer timeSyncer = TimeSyncerHolder.get();
-
         return BedrockData.of(version, username, xuid, deviceOs.ordinal(), languageCode,
                 uiProfile.ordinal(), inputMode.ordinal(), ip, linkedPlayer, proxy, subscribeId,
-                verifyCode, timeSyncer);
+                verifyCode);
     }
 
     @Override
