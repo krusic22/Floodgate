@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,15 +25,14 @@
 
 package org.geysermc.floodgate.module;
 
-import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
 import com.google.inject.TypeLiteral;
 import com.google.inject.multibindings.ProvidesIntoSet;
 import org.bukkit.event.Listener;
-import org.geysermc.floodgate.listener.SpigotListener;
+import org.geysermc.floodgate.listener.PaperProfileListener;
 import org.geysermc.floodgate.register.ListenerRegister;
 
-public class SpigotListenerModule extends AbstractModule {
+public class PaperListenerModule extends SpigotListenerModule {
     @Override
     protected void configure() {
         bind(new TypeLiteral<ListenerRegister<Listener>>() {}).asEagerSingleton();
@@ -41,7 +40,7 @@ public class SpigotListenerModule extends AbstractModule {
 
     @Singleton
     @ProvidesIntoSet
-    public Listener spigotListener() {
-        return new SpigotListener();
+    public Listener paperProfileListener() {
+        return new PaperProfileListener();
     }
 }

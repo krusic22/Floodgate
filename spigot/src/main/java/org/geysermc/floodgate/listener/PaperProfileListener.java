@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,25 +23,32 @@
  * @link https://github.com/GeyserMC/Floodgate
  */
 
-package org.geysermc.floodgate.module;
+package org.geysermc.floodgate.listener;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Singleton;
-import com.google.inject.TypeLiteral;
-import com.google.inject.multibindings.ProvidesIntoSet;
+import com.destroystokyo.paper.event.profile.PreFillProfileEvent;
+import com.destroystokyo.paper.profile.ProfileProperty;
+import com.google.inject.Inject;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.geysermc.floodgate.listener.SpigotListener;
-import org.geysermc.floodgate.register.ListenerRegister;
+import org.geysermc.floodgate.api.SimpleFloodgateApi;
 
-public class SpigotListenerModule extends AbstractModule {
-    @Override
-    protected void configure() {
-        bind(new TypeLiteral<ListenerRegister<Listener>>() {}).asEagerSingleton();
-    }
+public final class PaperProfileListener implements Listener {
+    @Inject private SimpleFloodgateApi api;
 
-    @Singleton
-    @ProvidesIntoSet
-    public Listener spigotListener() {
-        return new SpigotListener();
+    @EventHandler
+    public void onFill(PreFillProfileEvent event) {
+        UUID id = event.getPlayerProfile().getId();
+        if (!this.api.isFloodgatePlayer(id) ||
+                event.getPlayerProfile().getProperties().stream().anyMatch(
+                        prop -> "textures".equals(prop.getName()))) {
+            return;
+        }
+
+        Set<ProfileProperty> properties = new HashSet<>(event.getPlayerProfile().getProperties());
+        properties.add(new ProfileProperty("textures", "", ""));
+        event.setProperties(properties);
     }
 }
