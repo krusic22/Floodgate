@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,10 +28,11 @@ package org.geysermc.floodgate.api;
 import java.util.Collection;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import org.geysermc.cumulus.Form;
-import org.geysermc.cumulus.util.FormBuilder;
+import org.geysermc.cumulus.form.Form;
+import org.geysermc.cumulus.form.util.FormBuilder;
 import org.geysermc.floodgate.api.link.PlayerLink;
 import org.geysermc.floodgate.api.player.FloodgatePlayer;
+import org.geysermc.floodgate.api.unsafe.Unsafe;
 
 public interface FloodgateApi {
     /**
@@ -83,8 +84,8 @@ public interface FloodgateApi {
 
     /**
      * Checks if the uuid of the player has the {@link #createJavaPlayerId(long)} format. This
-     * method can't validate a linked player uuid, since that doesn't equal the format. Use {@link
-     * #isFloodgatePlayer(UUID)} if you want to include linked accounts.
+     * method can't validate a linked player uuid, since that doesn't equal the format. Use
+     * {@link #isFloodgatePlayer(UUID)} if you want to include linked accounts.
      *
      * @param uuid the uuid to check
      * @return true if the given uuid has the correct format.
@@ -93,7 +94,21 @@ public interface FloodgateApi {
 
     boolean sendForm(UUID uuid, Form form);
 
-    boolean sendForm(UUID uuid, FormBuilder<?, ?> formBuilder);
+    boolean sendForm(UUID uuid, FormBuilder<?, ?, ?> formBuilder);
+
+    /**
+     * @deprecated since Cumulus 1.1 and will be removed when Cumulus 2.0 releases. Please use the
+     * new form classes instead.
+     */
+    @Deprecated
+    boolean sendForm(UUID uuid, org.geysermc.cumulus.Form<?> form);
+
+    /**
+     * @deprecated since Cumulus 1.1 and will be removed when Cumulus 2.0 releases. Please use the
+     * new form classes instead.
+     */
+    @Deprecated
+    boolean sendForm(UUID uuid, org.geysermc.cumulus.util.FormBuilder<?, ?> formBuilder);
 
     boolean transferPlayer(UUID uuid, String address, int port);
 
@@ -107,9 +122,9 @@ public interface FloodgateApi {
     CompletableFuture<Long> getXuidFor(String gamertag);
 
     /**
-     * Get the xuid of the player that has the given gamertag. It does the same thing as {@link
-     * #getXuidFor(String)} except that this method will return the xuid in Floodgate uuid format
-     * instead of just a long
+     * Get the xuid of the player that has the given gamertag. It does the same thing as
+     * {@link #getXuidFor(String)} except that this method will return the xuid in Floodgate uuid
+     * format instead of just a long
      *
      * @param gamertag the gamertag of the player
      * @return the xuid of the player with the given gamertag, or null when there is no player with
@@ -139,4 +154,6 @@ public interface FloodgateApi {
     default PlayerLink getPlayerLink() {
         return InstanceHolder.getPlayerLink();
     }
+
+    Unsafe unsafe();
 }
